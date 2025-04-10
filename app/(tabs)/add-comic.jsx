@@ -11,10 +11,10 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import { createComic } from "../../utils/appwrite";
+import { createComic, fetchGeneratedComicDescription } from "../../utils/appwrite";
 import { uploadToCloudinary } from "../../utils/cloudinary";
 // Import the description generator
-import { generateComicDescription } from "../../utils/gemini"; // Adjust path if needed
+
 
 const AddComicScreen = () => {
   const [title, setTitle] = useState("");
@@ -40,7 +40,7 @@ const AddComicScreen = () => {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Use MediaTypeOptions.Images
+        mediaTypes: ImagePicker.MediaType, // Use MediaTypeOptions.Images
         allowsEditing: true,
         aspect: [3, 4],
         quality: 1,
@@ -70,57 +70,75 @@ const AddComicScreen = () => {
       return;
     }
 
-    try {
-      setLoading(true);
-      setGeneratingDesc(true); // Indicate description generation started
+    setLoading(true); // Start loading indicator
 
-      // 1. Generate Description
-      let generatedDescription = null;
-      try {
-        // Use the final ratingNum for the generator
-        const finalRating = status === "read" ? ratingNum : 0;
-        generatedDescription = await generateComicDescription(
-          title,
-          status,
-          finalRating
-        );
-      } catch (genError) {
-        console.error("Failed to generate description:", genError);
-        // Optionally alert the user, but proceed without description
-        Alert.alert(
+    let generatedDescription = null;
+    let coverImage = null;
+
+    try {
+      // ---- Step 1: Generate Description via Appwrite Function ----
+      console.log("Attempting to generate description via backend...");
+      const finalRating = status === "read" ? ratingNum : 0;
+      // CALL THE NEW FUNCTION
+      generatedDescription = await fetchGeneratedComicDescription(
+        title,
+        status,
+        finalRating
+      );
+
+      if (generatedDescription === null) {
+        // Function call failed or returned an error, inform user but proceed
+         Alert.alert(
           "Info",
           "Could not generate description automatically. You can add one later."
         );
-      } finally {
-        setGeneratingDesc(false); // Indicate description generation finished
+        // Keep generatedDescription as null
+      } else {
+        console.log("Description generated successfully.");
       }
 
-      // 2. Upload image if one was selected
-      let coverImage = null;
+      // ---- Step 2: Upload image if one was selected ----
       if (image) {
-        coverImage = await uploadToCloudinary(image);
+         console.log("Attempting to upload cover image...");
+         try {
+             coverImage = await uploadToCloudinary(image);
+             console.log("Cover image uploaded:", coverImage);
+         } catch(uploadError) {
+            console.error("Failed to upload cover image:", uploadError);
+            // Alert user and stop the process if image upload fails
+            Alert.alert("Upload Error", "Failed to upload cover image. Please try again.");
+            setLoading(false); // Stop loading
+            return; // Exit handleSubmit
+         }
+      } else {
+          console.log("No cover image selected for upload.");
       }
 
-      // 3. Create comic in database including the description
+      // ---- Step 3: Create comic in database ----
+      console.log("Attempting to create comic document...");
       await createComic({
         title,
         status,
         rating: status === "read" ? ratingNum : 0,
-        coverImage,
-        description: generatedDescription || "", // Add the description here, default to empty string if null
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        coverImage, // Will be null if no image was uploaded
+        description: generatedDescription || "", // Use generated or empty string
+        // Let Appwrite handle createdAt/updatedAt if possible, otherwise:
+        // createdAt: new Date().toISOString(),
+        // updatedAt: new Date().toISOString(),
       });
+      console.log("Comic created successfully in database.");
 
-      router.back();
+      router.back(); // Navigate back only on full success
+
     } catch (error) {
-      Alert.alert("Error", "Failed to add comic. Please try again.");
-      console.error(error);
+      // Catch errors from createComic or potentially unhandled errors from upstream
+      Alert.alert("Error", "Failed to add comic. Please check logs and try again.");
+      console.error("Error during handleSubmit:", error);
     } finally {
-      setLoading(false);
-      setGeneratingDesc(false); // Ensure this is false on error too
+      setLoading(false); // Stop loading indicator regardless of outcome
     }
   };
+ 
 
   // Determine button text based on loading states
   const getButtonText = () => {
