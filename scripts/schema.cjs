@@ -1,4 +1,4 @@
-const { Client, Databases } = require("node-appwrite");
+const { Client, Databases, Permission, Role } = require("node-appwrite");
 const dotenv = require("dotenv");
 
 // Load environment variables
@@ -90,6 +90,26 @@ const migrateSchema = async () => {
       } else {
         throw error;
       }
+    }
+
+    // Update collection permissions to allow read and write
+    try {
+      await databases.updateCollection(
+        APPWRITE_DATABASE_ID,
+        APPWRITE_COLLECTION_ID,
+        "Comics Collection",
+        [],
+        [
+          Permission.read(Role.any()),
+          Permission.create(Role.any()),
+          Permission.update(Role.any()),
+          Permission.delete(Role.any()),
+        ]
+      );
+      console.log("Collection permissions updated successfully");
+    } catch (error) {
+      console.error("Error updating collection permissions:", error);
+      throw error;
     }
 
     // Create attributes

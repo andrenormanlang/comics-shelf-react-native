@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { createComic } from "../utils/appwrite";
+import { uploadToCloudinary } from "../utils/cloudinary";
 
 const AddComicScreen = () => {
   const [title, setTitle] = useState("");
@@ -20,15 +22,32 @@ const AddComicScreen = () => {
   const [image, setImage] = useState(null);
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [3, 4],
-      quality: 1,
-    });
+    // Request permission first
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "Sorry, we need camera roll permissions to upload images.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaType,
+        allowsEditing: true,
+        aspect: [3, 4],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to select image. Please try again.");
     }
   };
 
@@ -49,8 +68,23 @@ const AddComicScreen = () => {
 
     try {
       setLoading(true);
-      // Here you would implement your own storage logic
-      // For now, we'll just simulate success
+
+      // Upload image if one was selected
+      let coverImage = null;
+      if (image) {
+        coverImage = await uploadToCloudinary(image);
+      }
+
+      // Create comic in database
+      await createComic({
+        title,
+        status,
+        rating: status === "read" ? ratingNum : 0,
+        coverImage,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
       router.back();
     } catch (error) {
       Alert.alert("Error", "Failed to add comic. Please try again.");

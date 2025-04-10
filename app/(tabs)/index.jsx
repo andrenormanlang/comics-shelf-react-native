@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,20 +7,56 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
+import { getComics } from "../utils/appwrite";
+import { getOptimizedImageUrl } from "../utils/cloudinary";
 
 const { width } = Dimensions.get("window");
-const CARD_WIDTH = width / 2 - 24; // 2 columns with padding
+const CARD_WIDTH = width / 2 - 24;
 
-const HomeScreen = () => {
-  const [comics] = useState([]); // This would be replaced with your storage solution
+export default function HomeScreen() {
+  const [comics, setComics] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const isFocused = useIsFocused();
+
+  const fetchComics = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getComics();
+      console.log("Fetched comics:", response); // Add logging to debug
+      setComics(response.documents || []);
+    } catch (err) {
+      console.error("Error fetching comics:", err);
+      setError("Failed to load comics");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchComics();
+    }
+  }, [isFocused]);
 
   const renderComic = ({ item }) => (
-    <TouchableOpacity style={[styles.comicCard, { width: CARD_WIDTH }]}>
-      {item.image && (
+    <TouchableOpacity
+      style={[styles.comicCard, { width: CARD_WIDTH }]}
+      onPress={() => {
+        router.push({
+          pathname: "/(tabs)/comic-detail",
+          params: { ...item },
+        });
+      }}
+    >
+      {item.coverImage && (
         <Image
-          source={{ uri: item.image }}
+          source={{ uri: getOptimizedImageUrl(item.coverImage) }}
           style={styles.coverImage}
           resizeMode="cover"
         />
@@ -34,6 +70,25 @@ const HomeScreen = () => {
       </View>
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchComics}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -56,7 +111,7 @@ const HomeScreen = () => {
       />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -148,6 +203,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
-// Change default export to named export for Expo Router
-export { HomeScreen as default };

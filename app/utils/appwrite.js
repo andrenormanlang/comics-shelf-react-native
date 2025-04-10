@@ -1,16 +1,14 @@
 import { Client, Databases, ID } from "react-native-appwrite";
 import {
   APPWRITE_ENDPOINT,
-  APPWRITE_PROJECT_ID,
   APPWRITE_DATABASE_ID,
   APPWRITE_COLLECTION_ID,
-  APPWRITE_PLATFORM_NAME,
 } from "@env";
 
 const client = new Client()
   .setEndpoint(APPWRITE_ENDPOINT)
-  .setProject(APPWRITE_PROJECT_ID)
-  .setPlatform(APPWRITE_PLATFORM_NAME);
+  .setProject("67f6973b002c893af4b4")
+  .setPlatform("com.comicsshelf.app");
 
 const databases = new Databases(client);
 
@@ -19,10 +17,17 @@ const COLLECTION_ID = APPWRITE_COLLECTION_ID;
 
 export const getComics = async () => {
   try {
+    console.log("Fetching comics with:", { DATABASE_ID, COLLECTION_ID });
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
+    console.log("Raw Appwrite response:", response);
     return response;
   } catch (error) {
     console.error("Error fetching comics:", error);
+    console.error("Error details:", {
+      message: error.message,
+      code: error.code,
+      type: error.type,
+    });
     throw error;
   }
 };
