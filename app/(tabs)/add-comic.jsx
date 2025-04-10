@@ -13,6 +13,8 @@ import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { createComic } from "../../utils/appwrite";
 import { uploadToCloudinary } from "../../utils/cloudinary";
+// Import the description generator
+import { generateComicDescription } from "../../utils/gemini"; // Adjust path if needed
 
 const AddComicScreen = () => {
   const [title, setTitle] = useState("");
@@ -20,9 +22,11 @@ const AddComicScreen = () => {
   const [rating, setRating] = useState("0");
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState(null);
+  // Add state to show description generation status (optional but good UX)
+  const [generatingDesc, setGeneratingDesc] = useState(false);
 
   const pickImage = async () => {
-    // Request permission first
+    // ... (keep existing pickImage function)
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== "granted") {
@@ -36,7 +40,7 @@ const AddComicScreen = () => {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Use MediaTypeOptions.Images
         allowsEditing: true,
         aspect: [3, 4],
         quality: 1,
@@ -68,19 +72,42 @@ const AddComicScreen = () => {
 
     try {
       setLoading(true);
+      setGeneratingDesc(true); // Indicate description generation started
 
-      // Upload image if one was selected
+      // 1. Generate Description
+      let generatedDescription = null;
+      try {
+        // Use the final ratingNum for the generator
+        const finalRating = status === "read" ? ratingNum : 0;
+        generatedDescription = await generateComicDescription(
+          title,
+          status,
+          finalRating
+        );
+      } catch (genError) {
+        console.error("Failed to generate description:", genError);
+        // Optionally alert the user, but proceed without description
+        Alert.alert(
+          "Info",
+          "Could not generate description automatically. You can add one later."
+        );
+      } finally {
+        setGeneratingDesc(false); // Indicate description generation finished
+      }
+
+      // 2. Upload image if one was selected
       let coverImage = null;
       if (image) {
         coverImage = await uploadToCloudinary(image);
       }
 
-      // Create comic in database
+      // 3. Create comic in database including the description
       await createComic({
         title,
         status,
         rating: status === "read" ? ratingNum : 0,
         coverImage,
+        description: generatedDescription || "", // Add the description here, default to empty string if null
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -91,7 +118,16 @@ const AddComicScreen = () => {
       console.error(error);
     } finally {
       setLoading(false);
+      setGeneratingDesc(false); // Ensure this is false on error too
     }
+  };
+
+  // Determine button text based on loading states
+  const getButtonText = () => {
+    if (loading) {
+      return generatingDesc ? "Generating Desc..." : "Adding Comic...";
+    }
+    return "Add Comic";
   };
 
   return (
@@ -121,7 +157,8 @@ const AddComicScreen = () => {
 
         <Text style={styles.label}>Status</Text>
         <View style={styles.statusContainer}>
-          <TouchableOpacity
+          {/* ... (keep existing status buttons) ... */}
+           <TouchableOpacity
             style={[
               styles.statusButton,
               status === "read" && styles.statusButtonActive,
@@ -176,15 +213,15 @@ const AddComicScreen = () => {
           onPress={handleSubmit}
           disabled={loading}
         >
-          <Text style={styles.submitButtonText}>
-            {loading ? "Adding..." : "Add Comic"}
-          </Text>
+          {/* Use the dynamic button text */}
+          <Text style={styles.submitButtonText}>{getButtonText()}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 };
 
+// --- Keep existing styles ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -263,5 +300,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
 
 export default AddComicScreen;
