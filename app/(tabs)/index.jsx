@@ -49,8 +49,8 @@ export default function HomeScreen() {
       style={[styles.comicCard, { width: CARD_WIDTH }]}
       onPress={() => {
         router.push({
-          pathname: "/(tabs)/comic-detail",
-          params: { ...item },
+          pathname: "/comics/[id]",
+          params: { id: item.$id, ...item },
         });
       }}
     >
@@ -104,7 +104,7 @@ export default function HomeScreen() {
       <FlatList
         data={comics}
         renderItem={renderComic}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item) => item.$id}
         style={styles.list}
         numColumns={2}
         columnWrapperStyle={styles.row}
