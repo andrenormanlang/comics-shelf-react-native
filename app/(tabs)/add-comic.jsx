@@ -7,15 +7,30 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Image,
 } from "react-native";
 import { router } from "expo-router";
-import { createComic } from "../utils/appwrite";
+import * as ImagePicker from "expo-image-picker";
 
 const AddComicScreen = () => {
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState("to-read");
   const [rating, setRating] = useState("0");
   const [loading, setLoading] = useState(false);
+  const [image, setImage] = useState(null);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -34,11 +49,8 @@ const AddComicScreen = () => {
 
     try {
       setLoading(true);
-      await createComic({
-        title: title.trim(),
-        status,
-        rating: status === "read" ? ratingNum : 0,
-      });
+      // Here you would implement your own storage logic
+      // For now, we'll just simulate success
       router.back();
     } catch (error) {
       Alert.alert("Error", "Failed to add comic. Please try again.");
@@ -59,6 +71,19 @@ const AddComicScreen = () => {
           placeholder="Enter comic title"
           editable={!loading}
         />
+
+        <Text style={styles.label}>Cover Image</Text>
+        <TouchableOpacity
+          style={styles.imageButton}
+          onPress={pickImage}
+          disabled={loading}
+        >
+          {image ? (
+            <Image source={{ uri: image }} style={styles.previewImage} />
+          ) : (
+            <Text style={styles.imageButtonText}>Select Cover Image</Text>
+          )}
+        </TouchableOpacity>
 
         <Text style={styles.label}>Status</Text>
         <View style={styles.statusContainer}>
@@ -146,6 +171,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ddd",
+  },
+  imageButton: {
+    backgroundColor: "white",
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 200,
+  },
+  imageButtonText: {
+    color: "#666",
+  },
+  previewImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 8,
   },
   statusContainer: {
     flexDirection: "row",

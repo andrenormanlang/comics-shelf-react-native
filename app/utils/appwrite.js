@@ -67,3 +67,10 @@ export const deleteComic = async (documentId) => {
     throw error;
   }
 };
+
+export default {
+  getComics,
+  createComic,
+  updateComic,
+  deleteComic,
+};
