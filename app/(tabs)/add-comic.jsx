@@ -11,8 +11,8 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import { createComic } from "../utils/appwrite";
-import { uploadToCloudinary } from "../utils/cloudinary";
+import { createComic } from "../../utils/appwrite";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 
 const AddComicScreen = () => {
   const [title, setTitle] = useState("");

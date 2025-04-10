@@ -10,8 +10,8 @@ import {
   TextInput,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { updateComic, deleteComic } from "../utils/appwrite";
-import { getOptimizedImageUrl } from "../utils/cloudinary";
+import { updateComic, deleteComic } from "../../utils/appwrite";
+import { getOptimizedImageUrl } from "../../utils/cloudinary";
 
 export default function ComicDetailScreen() {
   const params = useLocalSearchParams();

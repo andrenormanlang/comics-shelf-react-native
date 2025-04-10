@@ -10,6 +10,7 @@
     "migrate": "node scripts/migrate.cjs"
   },
   "dependencies": {
+    "@google/genai": "^0.8.0",
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/native": "^7.1.6",
     "appwrite": "^17.0.1",

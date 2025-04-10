@@ -11,8 +11,8 @@ import {
 } from "react-native";
 import { Link, router } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
-import { getComics } from "../utils/appwrite";
-import { getOptimizedImageUrl } from "../utils/cloudinary";
+import { getComics } from "../../utils/appwrite";
+import { getOptimizedImageUrl } from "../../utils/cloudinary";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width / 2 - 24;
