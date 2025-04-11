@@ -1,38 +1,44 @@
-import { Client, Databases, ID, Functions } from "react-native-appwrite"; // Import Functions
+import { Client, Databases, ID, Functions } from "react-native-appwrite";
 import {
   APPWRITE_ENDPOINT,
-  APPWRITE_PROJECT_ID, // Make sure this is in @env and correct
+  APPWRITE_PROJECT_ID,
   APPWRITE_DATABASE_ID,
   APPWRITE_COLLECTION_ID,
-  APPWRITE_PLATFORM,      // Add this to @env (e.g., com.comicsshelf.app)
-  APPWRITE_FUNCTION_ID_GENERATE_DESC // <-- ADD THIS to .env (value: comics_description_ai)
 } from "@env";
 
 const client = new Client()
   .setEndpoint(APPWRITE_ENDPOINT)
-  .setProject("67f6973b002c893af4b4")
-  .setPlatform("com.comicsshelf.app");
+  .setProject(APPWRITE_PROJECT_ID)
+  .setPlatform("com.comicsshelf.app"); // Add platform information
 
 const databases = new Databases(client);
 const functions = new Functions(client);
 
 const DATABASE_ID = APPWRITE_DATABASE_ID;
 const COLLECTION_ID = APPWRITE_COLLECTION_ID;
-const FUNCTION_ID_GENERATE_DESC = APPWRITE_FUNCTION_ID_GENERATE_DESC;
+const FUNCTION_ID = "comics_description_ai"; // Updated to the correct function ID
 
 export const getComics = async () => {
   try {
-    console.log("Fetching comics with:", { DATABASE_ID, COLLECTION_ID });
+    console.log("Starting getComics function with:", {
+      endpoint: APPWRITE_ENDPOINT,
+      projectId: APPWRITE_PROJECT_ID,
+      databaseId: DATABASE_ID,
+      collectionId: COLLECTION_ID,
+    });
+
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
-    console.log("Raw Appwrite response:", response);
+    console.log("Appwrite listDocuments response:", response);
+
+    if (!response || !response.documents) {
+      console.warn("No documents found in response");
+      return [];
+    }
+
+    console.log(`Found ${response.documents.length} comics`);
     return response.documents;
   } catch (error) {
     console.error("Error fetching comics:", error);
-    console.error("Error details:", {
-      message: error.message,
-      code: error.code,
-      type: error.type,
-    });
     throw error;
   }
 };
@@ -78,56 +84,78 @@ export const deleteComic = async (documentId) => {
   }
 };
 
-
 // --- New function to call the backend function ---
-export const fetchGeneratedComicDescription = async (title, status, rating) => {
-  // Ensure the Function ID is defined
-  if (!FUNCTION_ID_GENERATE_DESC) {
-      console.error("Appwrite Function ID for description generation is not defined in .env");
-      return null;
-  }
-  console.log(`Calling Appwrite function '${FUNCTION_ID_GENERATE_DESC}' for title: ${title}`);
+export const fetchGeneratedComicDescription = async (
+  title,
+  status,
+  rating = 0
+) => {
   try {
-    const execution = await functions.createExecution(
-      FUNCTION_ID_GENERATE_DESC,
-      JSON.stringify({ title, status, rating }), // Pass data as JSON string payload
-      false // Synchronous execution (waits for result)
-    );
+    if (!title || !status) {
+      throw new Error("Title and status are required fields");
+    }
 
-    console.log("Function execution result status:", execution.status);
+    const data = JSON.stringify({
+      title: title.trim(),
+      status: status.trim(),
+      rating: parseInt(rating) || 0,
+    });
 
-    if (execution.status === 'completed') {
-      console.log("Raw function response body:", execution.responseBody);
+    console.log("Calling AI function with data:", data);
+
+    const execution = await functions.createExecution(FUNCTION_ID, data);
+
+    console.log("Function execution response:", execution);
+
+    if (!execution) {
+      throw new Error("No execution response received");
+    }
+
+    // Parse the response - try both response and responseBody properties
+    let responseData;
+    if (execution.response) {
       try {
-         // Parse the response body, which is a string containing JSON
-         const response = JSON.parse(execution.responseBody);
-         if (response.success) {
-            console.log("Appwrite function returned description successfully.");
-            return response.description; // Return the description string
-         } else {
-            // The function executed but reported failure internally
-            console.error("Appwrite function execution reported an error:", response.error);
-            return null; // Indicate failure to generate
-         }
+        responseData = typeof execution.response === 'string' 
+          ? JSON.parse(execution.response)
+          : execution.response;
+        console.log("Parsed response:", responseData);
       } catch (parseError) {
-         // The function might have failed and returned non-JSON output
-         console.error("Failed to parse function response body:", parseError);
-         console.error("Function stderr (if any):", execution.stderr); // Log standard error
-         return null;
+        console.error("Failed to parse response:", execution.response);
+        throw new Error("Invalid response format from AI function");
       }
+    } else if (execution.responseBody) {
+      try {
+        responseData = typeof execution.responseBody === 'string'
+          ? JSON.parse(execution.responseBody)
+          : execution.responseBody;
+        console.log("Parsed response from responseBody:", responseData);
+      } catch (parseError) {
+        console.error("Failed to parse responseBody:", execution.responseBody);
+        throw new Error("Invalid response format from AI function");
+      }
+    }
 
-    } else {
-      // The function execution itself failed (e.g., timeout, runtime error)
-      console.error("Appwrite function execution failed:", execution.stderr || `Status: ${execution.status}`);
-      return null; // Indicate failure
+    // Check if we got any response data
+    if (!responseData) {
+      console.error("No response data received from function");
+      throw new Error("No response received from AI function");
     }
+
+    // Check for errors in the response
+    if (responseData.error) {
+      throw new Error(responseData.error);
+    }
+
+    // Validate response data
+    if (!responseData.success || !responseData.description) {
+      console.error("Invalid response format:", responseData);
+      throw new Error("Invalid response from AI function");
+    }
+
+    return responseData.description;
   } catch (error) {
-    // Error occurred in the client trying to *call* the function
-    console.error('Client-side error executing Appwrite function:', error);
-    if (error.response) {
-        console.error('Appwrite error response details:', error.response);
-    }
-    return null; // Indicate failure
+    console.error("Error executing AI function:", error);
+    throw error;
   }
 };
 

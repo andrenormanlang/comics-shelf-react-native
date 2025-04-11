@@ -28,8 +28,14 @@ export default function HomeScreen() {
       setLoading(true);
       setError(null);
       const response = await getComics();
-      console.log("Fetched comics:", response); // Add logging to debug
-      setComics(response.documents || []);
+      console.log("Fetched comics:", response);
+
+      if (Array.isArray(response)) {
+        setComics(response);
+      } else {
+        console.error("Invalid response format:", response);
+        setError("Failed to load comics");
+      }
     } catch (err) {
       console.error("Error fetching comics:", err);
       setError("Failed to load comics");
@@ -44,32 +50,40 @@ export default function HomeScreen() {
     }
   }, [isFocused]);
 
-  const renderComic = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.comicCard, { width: CARD_WIDTH }]}
-      onPress={() => {
-        router.push({
-          pathname: "/comics/[id]",
-          params: { id: item.$id, ...item },
-        });
-      }}
-    >
-      {item.coverImage && (
-        <Image
-          source={{ uri: getOptimizedImageUrl(item.coverImage) }}
-          style={styles.coverImage}
-          resizeMode="cover"
-        />
-      )}
-      <View style={styles.comicInfo}>
-        <Text style={styles.comicTitle}>{item.title}</Text>
-        <Text style={styles.comicStatus}>Status: {item.status}</Text>
-        {item.rating > 0 && (
-          <Text style={styles.comicRating}>Rating: {item.rating}/5</Text>
+  const renderComic = ({ item }) => {
+    if (!item) return null;
+
+    return (
+      <TouchableOpacity
+        style={[styles.comicCard, { width: CARD_WIDTH }]}
+        onPress={() => {
+          if (item.$id) {
+            router.push({
+              pathname: "/comics/[id]",
+              params: { id: item.$id, ...item },
+            });
+          }
+        }}
+      >
+        {item.coverImage && (
+          <Image
+            source={{ uri: getOptimizedImageUrl(item.coverImage) }}
+            style={styles.coverImage}
+            resizeMode="cover"
+          />
         )}
-      </View>
-    </TouchableOpacity>
-  );
+        <View style={styles.comicInfo}>
+          <Text style={styles.comicTitle}>{item.title || "Untitled"}</Text>
+          <Text style={styles.comicStatus}>
+            Status: {item.status || "Unknown"}
+          </Text>
+          {item.rating > 0 && (
+            <Text style={styles.comicRating}>Rating: {item.rating}/5</Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (

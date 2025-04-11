@@ -10,7 +10,11 @@ import {
   TextInput,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { updateComic, deleteComic } from "../../utils/appwrite";
+import {
+  updateComic,
+  deleteComic,
+  fetchGeneratedComicDescription,
+} from "../../utils/appwrite";
 import {
   getOptimizedImageUrl,
   uploadToCloudinary,
@@ -31,6 +35,7 @@ export default function ComicDetailScreen() {
     status: params.status,
     rating: params.rating?.toString() || "0",
     coverImage: params.coverImage,
+    description: params.description,
   });
   const [newImage, setNewImage] = useState(null);
 
@@ -94,18 +99,47 @@ export default function ComicDetailScreen() {
         coverImage = await uploadToCloudinary(newImage);
       }
 
+      // Generate new description if title, status, or rating changed
+      let description = comic.description;
+      if (
+        editedComic.title !== comic.title ||
+        editedComic.status !== comic.status ||
+        parseInt(editedComic.rating) !== comic.rating
+      ) {
+        console.log("Generating new description for updated comic:", {
+          title: editedComic.title,
+          status: editedComic.status,
+          rating: parseInt(editedComic.rating),
+        });
+
+        description = await fetchGeneratedComicDescription(
+          editedComic.title.trim(),
+          editedComic.status.trim(),
+          parseInt(editedComic.rating)
+        );
+
+        if (!description) {
+          throw new Error("Failed to generate description");
+        }
+      }
+
       const updatedComic = await updateComic(id, {
         ...editedComic,
         coverImage,
+        description,
         rating: parseInt(editedComic.rating),
         updatedAt: new Date().toISOString(),
       });
+
       setComic(updatedComic);
       setNewImage(null);
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating comic:", error);
-      Alert.alert("Error", "Failed to update comic");
+      Alert.alert(
+        "Error",
+        error.message || "Failed to update comic. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -213,6 +247,9 @@ export default function ComicDetailScreen() {
             {comic.status === "read" && comic.rating > 0 && (
               <Text style={styles.rating}>Rating: {comic.rating}/5</Text>
             )}
+            {comic.description && (
+              <Text style={styles.description}>{comic.description}</Text>
+            )}
           </>
         )}
 
@@ -253,6 +290,7 @@ export default function ComicDetailScreen() {
                   status: comic.status,
                   rating: comic.rating?.toString() || "0",
                   coverImage: comic.coverImage,
+                  description: comic.description,
                 });
                 setNewImage(null);
               }}
@@ -294,6 +332,18 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     fontWeight: "bold",
     marginBottom: 16,
+  },
+  description: {
+    fontSize: 16,
+    color: "#333",
+    marginTop: 16,
+    marginBottom: 16,
+    lineHeight: 24,
+    backgroundColor: "#f8f8f8",
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
   input: {
     backgroundColor: "white",

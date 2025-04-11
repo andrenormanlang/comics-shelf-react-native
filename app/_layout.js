@@ -8,21 +8,20 @@ export default function RootLayout() {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
-          if (route.name === "(tabs)/index") {
+          if (route.name === "index") {
             iconName = focused ? "book" : "book-outline";
-          } else if (route.name === "(tabs)/add-comic") {
+          } else if (route.name === "add-comic") {
             iconName = focused ? "add-circle" : "add-circle-outline";
           }
 
-          // You can return any component that you like here!
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
       })}
     >
-      <Tabs.Screen name="(tabs)/index" options={{ title: "Shelf" }} />
-      <Tabs.Screen name="(tabs)/add-comic" options={{ title: "Add Comic" }} />
+      <Tabs.Screen name="index" options={{ title: "Shelf" }} />
+      <Tabs.Screen name="add-comic" options={{ title: "Add Comic" }} />
     </Tabs>
   );
 }
