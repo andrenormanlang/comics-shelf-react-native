@@ -58,10 +58,7 @@ export default function HomeScreen() {
         style={[styles.comicCard, { width: CARD_WIDTH }]}
         onPress={() => {
           if (item.$id) {
-            router.push({
-              pathname: "/comics/[id]",
-              params: { id: item.$id, ...item },
-            });
+            router.push(`/comics/${item.$id}`);
           }
         }}
       >

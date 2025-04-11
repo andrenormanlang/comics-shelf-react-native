@@ -1,58 +1,10 @@
 import { View, Text, StyleSheet } from "react-native";
 import { Tabs, TabList, TabTrigger, TabSlot } from "expo-router/ui";
 import { Ionicons } from "@expo/vector-icons";
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
-  return (
-    <Tabs>
-      <TabSlot />
-      <TabList style={styles.tabList}>
-        <TabTrigger
-          name="index"
-          href="/"
-          style={({ focused }) => [
-            styles.tabTrigger,
-            focused && styles.tabTriggerFocused,
-          ]}
-        >
-          {({ focused }) => (
-            <View style={styles.tabContent}>
-              <Ionicons
-                name={focused ? "book" : "book-outline"}
-                size={24}
-                color={focused ? "#007AFF" : "gray"}
-              />
-              <Text style={[styles.tabText, focused && styles.tabTextFocused]}>
-                Shelf
-              </Text>
-            </View>
-          )}
-        </TabTrigger>
-
-        <TabTrigger
-          name="add-comic"
-          href="/add-comic"
-          style={({ focused }) => [
-            styles.tabTrigger,
-            focused && styles.tabTriggerFocused,
-          ]}
-        >
-          {({ focused }) => (
-            <View style={styles.tabContent}>
-              <Ionicons
-                name={focused ? "add-circle" : "add-circle-outline"}
-                size={24}
-                color={focused ? "#007AFF" : "gray"}
-              />
-              <Text style={[styles.tabText, focused && styles.tabTextFocused]}>
-                Add Comic
-              </Text>
-            </View>
-          )}
-        </TabTrigger>
-      </TabList>
-    </Tabs>
-  );
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 const styles = StyleSheet.create({
