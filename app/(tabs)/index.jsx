@@ -106,14 +106,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Comic Shelf</Text>
-        <Link href="/add-comic" asChild>
-          <TouchableOpacity style={styles.addButton}>
-            <Text style={styles.addButtonText}>Add Comic</Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
+      <View style={styles.headerSpace}>{/* Space reserved for logo */}</View>
 
       <FlatList
         data={comics}
@@ -157,24 +150,9 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  addButton: {
-    backgroundColor: "#007AFF",
-    padding: 8,
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: "white",
-    fontWeight: "bold",
+  headerSpace: {
+    height: 50,
+    marginBottom: 24, // Increased from 16 to 24
   },
   list: {
     flex: 1,
