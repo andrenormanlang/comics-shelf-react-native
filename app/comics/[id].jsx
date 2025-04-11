@@ -99,7 +99,7 @@ export default function ComicDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "transparent",
   },
   loadingContainer: {
     flex: 1,
@@ -113,13 +113,13 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   errorText: {
-    color: "red",
+    color: "#BB86FC",
     fontSize: 16,
   },
   imageContainer: {
     width: "100%",
     height: 500,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#121212",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -129,40 +129,48 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+    backgroundColor: "rgba(30, 30, 30, 0.9)",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 8,
+    color: "#fff",
   },
   status: {
     fontSize: 16,
-    color: "#666",
+    color: "#BB86FC",
     marginBottom: 8,
   },
   rating: {
     fontSize: 16,
-    color: "#007AFF",
+    color: "#03DAC6",
     fontWeight: "bold",
     marginBottom: 16,
   },
   description: {
     fontSize: 16,
-    color: "#333",
+    color: "#E1E1E1",
     marginBottom: 16,
+    lineHeight: 24,
+    backgroundColor: "rgba(18, 18, 18, 0.6)",
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#333",
   },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#BB86FC",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 16,
   },
   deleteButton: {
-    backgroundColor: "#FF3B30",
+    backgroundColor: "#CF6679",
   },
   buttonText: {
-    color: "white",
+    color: "#000",
     fontWeight: "bold",
     fontSize: 16,
   },

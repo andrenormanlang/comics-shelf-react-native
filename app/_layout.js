@@ -4,7 +4,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 
 export default function RootLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "transparent" },
+      }}
+    />
+  );
 }
 
 const styles = StyleSheet.create({

@@ -105,7 +105,13 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerSpace}>{/* Space reserved for logo */}</View>
+      <View style={styles.headerSpace}>
+        <Image
+          source={require("../../assets/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
 
       <FlatList
         data={comics}
@@ -123,59 +129,75 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "transparent",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(18, 18, 18, 0.8)",
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
+    backgroundColor: "rgba(18, 18, 18, 0.8)",
   },
   errorText: {
-    color: "red",
+    color: "#BB86FC",
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#BB86FC",
     padding: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: "white",
+    color: "#000",
     fontWeight: "bold",
   },
   headerSpace: {
-    height: 50,
-    marginBottom: 24, // Increased from 16 to 24
+    height: 80,
+    marginBottom: 24,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    paddingLeft: 0, // Removed padding to move logo all the way to the left
+  },
+  logo: {
+    width: 200,
+    height: "100%",
   },
   list: {
     flex: 1,
   },
   row: {
     justifyContent: "space-between",
-    marginBottom: 16,
+    marginBottom: 24,
+    paddingHorizontal: 4,
   },
   comicCard: {
-    backgroundColor: "white",
-    borderRadius: 8,
+    width: CARD_WIDTH,
+    backgroundColor: "rgba(30, 30, 30, 0.85)",
+    borderRadius: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+    borderColor: "rgba(187, 134, 252, 0.3)",
+    borderWidth: 1,
+    overflow: "hidden",
   },
   imageContainer: {
     width: "100%",
     height: 250,
-    backgroundColor: "#f0f0f0",
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    backgroundColor: "#121212",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     overflow: "hidden",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(187, 134, 252, 0.2)",
   },
   coverImage: {
     width: "100%",
@@ -183,20 +205,27 @@ const styles = StyleSheet.create({
   },
   comicInfo: {
     padding: 12,
+    backgroundColor: "rgba(18, 18, 18, 0.6)",
   },
   comicTitle: {
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 4,
+    color: "#fff",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   comicStatus: {
-    color: "#666",
+    color: "#BB86FC",
     fontSize: 14,
     marginBottom: 4,
+    opacity: 0.9,
   },
   comicRating: {
-    color: "#007AFF",
+    color: "#03DAC6",
     fontWeight: "bold",
     fontSize: 14,
+    opacity: 0.9,
   },
 });
