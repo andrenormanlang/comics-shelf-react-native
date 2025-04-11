@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { getComics } from "../../utils/appwrite";
+import { getOptimizedImageUrl } from "../../utils/cloudinary";
 
 export default function ComicDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -60,13 +61,15 @@ export default function ComicDetailScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      {comic.coverImage && (
-        <Image
-          source={{ uri: comic.coverImage }}
-          style={styles.coverImage}
-          resizeMode="cover"
-        />
-      )}
+      <View style={styles.imageContainer}>
+        {comic.coverImage && (
+          <Image
+            source={{ uri: getOptimizedImageUrl(comic.coverImage, 600, 900) }}
+            style={styles.coverImage}
+            resizeMode="contain"
+          />
+        )}
+      </View>
       <View style={styles.content}>
         <Text style={styles.title}>{comic.title}</Text>
         <Text style={styles.status}>Status: {comic.status}</Text>
@@ -113,9 +116,16 @@ const styles = StyleSheet.create({
     color: "red",
     fontSize: 16,
   },
+  imageContainer: {
+    width: "100%",
+    height: 500,
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   coverImage: {
     width: "100%",
-    height: 400,
+    height: "100%",
   },
   content: {
     padding: 16,

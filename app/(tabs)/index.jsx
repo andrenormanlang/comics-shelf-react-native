@@ -62,13 +62,15 @@ export default function HomeScreen() {
           }
         }}
       >
-        {item.coverImage && (
-          <Image
-            source={{ uri: getOptimizedImageUrl(item.coverImage) }}
-            style={styles.coverImage}
-            resizeMode="cover"
-          />
-        )}
+        <View style={styles.imageContainer}>
+          {item.coverImage && (
+            <Image
+              source={{ uri: getOptimizedImageUrl(item.coverImage, 300, 450) }}
+              style={styles.coverImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
         <View style={styles.comicInfo}>
           <Text style={styles.comicTitle}>{item.title || "Untitled"}</Text>
           <Text style={styles.comicStatus}>
@@ -167,11 +169,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  coverImage: {
+  imageContainer: {
     width: "100%",
-    height: 200,
+    height: 250,
+    backgroundColor: "#f0f0f0",
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
+    overflow: "hidden",
+  },
+  coverImage: {
+    width: "100%",
+    height: "100%",
   },
   comicInfo: {
     padding: 12,

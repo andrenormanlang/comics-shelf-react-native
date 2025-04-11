@@ -45,7 +45,8 @@ export const uploadToCloudinary = async (imageUri) => {
 
 export const getOptimizedImageUrl = (url, width = 300, height = 400) => {
   if (!url) return null;
-  return url.replace("/upload/", `/upload/w_${width},h_${height},c_fill/`);
+  // Using c_scale instead of c_fill to preserve aspect ratio
+  return url.replace("/upload/", `/upload/w_${width},h_${height},c_scale/`);
 };
 
 export default {
